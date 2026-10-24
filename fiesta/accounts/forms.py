@@ -3,9 +3,11 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.forms import (
     CharField,
+    DateInput,
     EmailField,
     Form,
     ModelChoiceField,
+    ModelForm,
     PasswordInput,
 )
 
@@ -112,3 +114,38 @@ class SpecialistRegistrationForm(CustomerRegistrationForm):
             category=self.cleaned_data["category"],
         )
         return account
+
+
+class ProfileForm(ModelForm):
+    class Meta:
+        fields = [
+            "first_name",
+            "last_name",
+            "patronymic",
+            "birth_date",
+            "phone",
+            "photo",
+            "instagram",
+            "telegram",
+            "pinterest",
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs["class"] = "input"
+        self.fields["birth_date"].widget = DateInput(
+            format="%Y-%m-%d",
+            attrs={"type": "date", "class": "input"},
+        )
+        self.fields["birth_date"].input_formats = ["%Y-%m-%d"]
+
+
+class UserProfileForm(ProfileForm):
+    class Meta(ProfileForm.Meta):
+        model = UserProfile
+
+
+class SpecialistProfileForm(ProfileForm):
+    class Meta(ProfileForm.Meta):
+        model = SpecialistProfile

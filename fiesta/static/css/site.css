@@ -87,7 +87,7 @@ a {
 }
 
 main {
-  max-width: 720px;
+  max-width: 960px;
   margin: 0 auto;
   padding: 28px 20px 48px;
 }
@@ -97,10 +97,51 @@ h1 {
   font-size: 1.8rem;
 }
 
-form {
+form.stack {
   display: grid;
   gap: 8px;
   margin-top: 20px;
+}
+
+.messages {
+  margin: 0 0 16px;
+  padding: 10px 12px;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.cards {
+  display: grid;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.card h2 {
+  margin: 0 0 8px;
+  font-size: 1.15rem;
+}
+
+.thumb {
+  max-width: 160px;
+  height: auto;
+}
+
+.tabs form {
+  margin: 0;
+}
+
+.tabs button {
+  margin-top: 0;
+  border-radius: 999px;
+  padding: 8px 12px;
 }
 
 label {

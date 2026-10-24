@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Отзывы — Fiesta{% endblock %}
+
+{% block content %}
+  <h1>Отзывы</h1>
+  {% include "cabinet_nav.html" %}
+  {% for review in reviews %}
+    <article class="card">
+      <p>{{ review.project.title }}. Оценка: {{ review.rating }}</p>
+      <p>{{ review.text }}</p>
+      <p class="hint">{{ review.author.first_name }} {{ review.author.last_name }}</p>
+      {% if review.reply %}
+        <p>Ваш ответ: {{ review.reply }}</p>
+      {% endif %}
+      <form class="stack" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="review" value="{{ review.pk }}">
+        <label for="reply-{{ review.pk }}">Ответ</label>
+        <textarea class="input" id="reply-{{ review.pk }}" name="reply" rows="3">{{ review.reply }}</textarea>
+        <button type="submit">Ответить</button>
+      </form>
+    </article>
+  {% empty %}
+    <p>Отзывов нет.</p>
+  {% endfor %}
+{% endblock %}

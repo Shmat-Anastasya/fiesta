@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Портфолио — Fiesta{% endblock %}
+
+{% block content %}
+  <h1>Портфолио</h1>
+  {% include "cabinet_nav.html" %}
+  <form class="stack" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <label for="{{ form.album_title.id_for_label }}">{{ form.album_title.label }}</label>
+    {{ form.album_title }}
+    {% for error in form.album_title.errors %}
+      <p class="errors">{{ error }}</p>
+    {% endfor %}
+    <label for="images">Фото jpeg или png, до 5 МБ, не больше 20 в альбоме</label>
+    <input class="input" id="images" type="file" name="images" accept=".jpg,.jpeg,.png" multiple>
+    <button type="submit">Добавить</button>
+  </form>
+  {% for title, photos in albums %}
+    <h2>{{ title }}</h2>
+    <div class="cards">
+      {% for photo in photos %}
+        <div class="card">
+          <img class="thumb" src="{{ photo.image.url }}" alt="">
+          {% if photo.is_cover %}<p class="hint">Обложка</p>{% endif %}
+          <form method="post">
+            {% csrf_token %}
+            <button type="submit" name="delete_photo" value="{{ photo.pk }}">Удалить</button>
+          </form>
+        </div>
+      {% endfor %}
+    </div>
+  {% empty %}
+    <p>Альбомов пока нет.</p>
+  {% endfor %}
+{% endblock %}

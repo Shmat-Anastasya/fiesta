@@ -16,29 +16,22 @@
       <nav class="menu">
         <a href="{% url 'home' %}">Главная</a>
         <a href="{% url 'catalog' %}">Каталог</a>
-        <a href="{% url 'favorites' %}">Избранное</a>
-        <a href="{% url 'projects' %}">Проекты</a>
-        <a href="{% url 'questionnaire' %}">Анкета</a>
-        <a href="{% url 'portfolio' %}">Портфолио</a>
-        <a href="{% url 'user_profile' %}">Профиль пользователя</a>
-        <a href="{% url 'specialist_profile' %}">Профиль специалиста</a>
         {% if user.is_authenticated %}
-          <form method="post" action="{% url 'logout' %}">
-            {% csrf_token %}
-            <button type="submit">Выход</button>
-          </form>
+          <a href="{% url 'cabinet' %}">{{ cabinet_name }}</a>
         {% else %}
           <a href="{% url 'login' %}">Вход</a>
-          <a href="{% url 'register_customer' %}">Регистрация пользователя</a>
-          <a href="{% url 'register_specialist' %}">Регистрация специалиста</a>
         {% endif %}
       </nav>
     </div>
-    {% if user.is_authenticated %}
-      <p class="who">Вы вошли как {{ user.email }}</p>
-    {% endif %}
   </header>
   <main>
+    {% if messages %}
+      <ul class="messages">
+        {% for message in messages %}
+          <li>{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
     {% block content %}{% endblock %}
   </main>
 </body>

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}{{ project.title }} — Fiesta{% endblock %}
+
+{% block content %}
+  <h1>{{ project.title }}</h1>
+  {% include "cabinet_nav.html" %}
+  <p>{{ project.event_type }}. {{ project.event_date }}. {{ project.get_status_display }}.</p>
+  <p>{{ project.description }}</p>
+  <h2>Команда</h2>
+  {% for member in team %}
+    <article class="card">
+      <p>{{ member.role_title }}: <a href="{{ member.specialist.get_absolute_url }}">{{ member.specialist.first_name }} {{ member.specialist.last_name }}</a></p>
+      {% if project.status == "in_progress" %}
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="remove">
+          <button type="submit" name="candidate" value="{{ member.pk }}">Убрать</button>
+        </form>
+      {% elif member.specialist.pk not in reviewed %}
+        <form class="stack" method="post">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="review">
+          <input type="hidden" name="specialist" value="{{ member.specialist.pk }}">
+          {% for field in review_form %}
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+          {% endfor %}
+          <button type="submit">Оставить отзыв</button>
+        </form>
+      {% else %}
+        <p class="hint">Отзыв оставлен.</p>
+      {% endif %}
+    </article>
+  {% empty %}
+    <p>Специалисты ещё не выбраны. Откройте каталог и выберите человека на роль.</p>
+  {% endfor %}
+  {% if project.status == "in_progress" %}
+    <form method="post">
+      {% csrf_token %}
+      <button type="submit" name="action" value="complete">Завершить проект</button>
+    </form>
+  {% endif %}
+{% endblock %}

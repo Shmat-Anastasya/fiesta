@@ -125,6 +125,11 @@ class SpecialistProfile(models.Model):
     def __str__(self):
         return f"{self.last_name} {self.first_name}"
 
+    def get_absolute_url(self):
+        from django.urls import reverse
+
+        return reverse("specialist_detail", args=[self.pk])
+
 
 class ContactMessage(models.Model):
     name = models.CharField("Имя", max_length=100)

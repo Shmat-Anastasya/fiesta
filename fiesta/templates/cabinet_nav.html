@@ -1,0 +1,15 @@
+<nav class="tabs">
+  <a href="{% url 'cabinet' %}" {% if section == "main" %}class="active"{% endif %}>Основное</a>
+  {% if user.role == "customer" %}
+    <a href="{% url 'favorites' %}" {% if section == "favorites" %}class="active"{% endif %}>Избранное</a>
+    <a href="{% url 'projects' %}" {% if section == "projects" %}class="active"{% endif %}>Проекты</a>
+  {% else %}
+    <a href="{% url 'questionnaire' %}" {% if section == "questionnaire" %}class="active"{% endif %}>Анкета</a>
+    <a href="{% url 'portfolio' %}" {% if section == "portfolio" %}class="active"{% endif %}>Портфолио</a>
+    <a href="{% url 'specialist_reviews' %}" {% if section == "reviews" %}class="active"{% endif %}>Отзывы</a>
+  {% endif %}
+  <form method="post" action="{% url 'logout' %}">
+    {% csrf_token %}
+    <button type="submit">Выйти</button>
+  </form>
+</nav>

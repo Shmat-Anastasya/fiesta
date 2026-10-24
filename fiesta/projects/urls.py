@@ -3,9 +3,10 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path("favorites/", views.favorites, name="favorites"),
-    path("projects/", views.projects, name="projects"),
-    path("projects/page/", views.project_page, name="project_page"),
-    path("projects/review/", views.review_page, name="review_page"),
-    path("projects/review/reply/", views.review_reply, name="review_reply"),
+    path("favorites/<int:pk>/", views.toggle_favorite, name="toggle_favorite"),
+    path("profile/favorites/", views.favorites, name="favorites"),
+    path("profile/projects/", views.projects, name="projects"),
+    path("profile/projects/<int:pk>/", views.project_detail, name="project_detail"),
+    path("specialists/<int:pk>/select/", views.add_to_project, name="add_to_project"),
+    path("profile/reviews/", views.specialist_reviews, name="specialist_reviews"),
 ]

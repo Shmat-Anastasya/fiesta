@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Проекты — Fiesta{% endblock %}
+
+{% block content %}
+  <h1>Проекты</h1>
+  {% include "cabinet_nav.html" %}
+  <nav class="tabs">
+    <a href="{% url 'projects' %}?tab=all" {% if tab == "all" %}class="active"{% endif %}>Все</a>
+    <a href="{% url 'projects' %}?tab=in_progress" {% if tab == "in_progress" %}class="active"{% endif %}>В процессе</a>
+    <a href="{% url 'projects' %}?tab=completed" {% if tab == "completed" %}class="active"{% endif %}>Завершённые</a>
+  </nav>
+  <div class="cards">
+    {% for project in projects %}
+      <article class="card">
+        <h2><a href="{% url 'project_detail' project.pk %}">{{ project.title }}</a></h2>
+        <p>{{ project.event_type }}. {{ project.event_date }}. {{ project.get_status_display }}.</p>
+      </article>
+    {% empty %}
+      <p>Проектов нет.</p>
+    {% endfor %}
+  </div>
+  <h2>Новый проект</h2>
+  <form class="stack" method="post">
+    {% csrf_token %}
+    {% for field in form %}
+      <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+      {{ field }}
+      {% for error in field.errors %}
+        <p class="errors">{{ error }}</p>
+      {% endfor %}
+    {% endfor %}
+    <button type="submit">Создать</button>
+  </form>
+{% endblock %}

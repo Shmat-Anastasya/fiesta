@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Главная — Fiesta{% endblock %}
+
+{% block content %}
+  <h1>Fiesta</h1>
+  <p>Специалисты для частных мероприятий в Минске. Цены в белорусских рублях.</p>
+  <p><a href="{% url 'catalog' %}">Открыть каталог</a></p>
+  <h2>Категории</h2>
+  <ul>
+    {% for category in categories %}
+      <li><a href="{% url 'catalog' %}?category={{ category.pk }}">{{ category.name }}</a></li>
+    {% empty %}
+      <li>Категорий пока нет.</li>
+    {% endfor %}
+  </ul>
+{% endblock %}

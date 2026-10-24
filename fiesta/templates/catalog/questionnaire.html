@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}Анкета — Fiesta{% endblock %}
+
+{% block content %}
+  <h1>Анкета</h1>
+  {% include "cabinet_nav.html" %}
+  <form class="stack" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {% for field in form %}
+      <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+      {{ field }}
+      {% for error in field.errors %}
+        <p class="errors">{{ error }}</p>
+      {% endfor %}
+    {% endfor %}
+    <h2>Цены «от», бел. руб.</h2>
+    {% for row in price_rows %}
+      <label for="price_{{ row.field.pk }}">{{ row.field.label }}</label>
+      <input class="input" id="price_{{ row.field.pk }}" name="price_{{ row.field.pk }}" value="{{ row.amount }}">
+    {% endfor %}
+    <h2>Главные фото</h2>
+    <input class="input" type="file" name="images" accept=".jpg,.jpeg,.png" multiple>
+    <button type="submit">Сохранить анкету</button>
+  </form>
+  <div class="cards">
+    {% for photo in photos %}
+      <div class="card">
+        <img class="thumb" src="{{ photo.image.url }}" alt="">
+        <form method="post">
+          {% csrf_token %}
+          <button type="submit" name="delete_photo" value="{{ photo.pk }}">Удалить</button>
+        </form>
+      </div>
+    {% endfor %}
+  </div>
+{% endblock %}

@@ -4,8 +4,7 @@
 
 {% block content %}
   <h1>Вход</h1>
-  <p>Это страница входа. Логин — почта.</p>
-  <form method="post">
+  <form class="stack" method="post">
     {% csrf_token %}
     {% if form.non_field_errors %}
       <ul class="errors">
@@ -23,4 +22,8 @@
     {% endfor %}
     <button type="submit">Войти</button>
   </form>
+  <p class="page-links">
+    <a href="{% url 'register' %}">Регистрация пользователя</a><br>
+    <a href="{% url 'register_specialist' %}">Регистрация специалиста</a>
+  </p>
 {% endblock %}

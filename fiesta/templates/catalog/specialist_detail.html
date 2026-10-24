@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}{{ specialist.first_name }} {{ specialist.last_name }} — Fiesta{% endblock %}
+
+{% block content %}
+  <h1>{{ specialist.first_name }} {{ specialist.last_name }}</h1>
+  <p>{{ specialist.category }}. Минск.</p>
+  {% if experience_years != None %}
+    <p>Опыт: {{ experience_years }} лет. Начало карьеры: {{ specialist.career_start }}.</p>
+  {% endif %}
+  <p>{{ specialist.description }}</p>
+
+  <h2>Цены</h2>
+  <ul>
+    {% for price in prices %}
+      <li>от {{ price.amount }} бел. руб. — {{ price.price_field.label }}</li>
+    {% empty %}
+      <li>Цены не указаны.</li>
+    {% endfor %}
+  </ul>
+
+  <h2>Фото</h2>
+  <div class="cards">
+    {% for photo in main_photos %}
+      <img class="thumb" src="{{ photo.image.url }}" alt="">
+    {% empty %}
+      <p>Главных фото нет.</p>
+    {% endfor %}
+  </div>
+
+  <h2>Портфолио</h2>
+  {% for title, photos in albums %}
+    <h3>{{ title }}</h3>
+    <div class="cards">
+      {% for photo in photos %}
+        <img class="thumb" src="{{ photo.image.url }}" alt="">
+      {% endfor %}
+    </div>
+  {% empty %}
+    <p>Альбомов нет.</p>
+  {% endfor %}
+
+  <h2>Отзывы</h2>
+  {% for review in reviews %}
+    <article class="card">
+      <p>Оценка: {{ review.rating }}</p>
+      <p>{{ review.text }}</p>
+      <p class="hint">{{ review.author.first_name }} {{ review.author.last_name }}, {{ review.created_at }}</p>
+      {% if review.reply %}
+        <p>Ответ: {{ review.reply }}</p>
+      {% endif %}
+    </article>
+  {% empty %}
+    <p>Отзывов нет.</p>
+  {% endfor %}
+
+  {% if user.is_authenticated and user.role == "customer" %}
+    <form method="post" action="{% url 'toggle_favorite' specialist.pk %}">
+      {% csrf_token %}
+      <button type="submit">{% if is_favorite %}Убрать из избранного{% else %}В избранное{% endif %}</button>
+    </form>
+    {% if select_form.fields.project.queryset %}
+      <h2>Выбрать в проект</h2>
+      <p class="hint">На одну роль можно выбрать одного специалиста.</p>
+      <form class="stack" method="post" action="{% url 'add_to_project' specialist.pk %}">
+        {% csrf_token %}
+        {% for field in select_form %}
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+        {% endfor %}
+        <button type="submit">Выбрать</button>
+      </form>
+    {% else %}
+      <p class="hint"><a href="{% url 'projects' %}">Создайте проект</a>, чтобы выбрать этого специалиста.</p>
+    {% endif %}
+  {% elif not user.is_authenticated %}
+    <p><a href="{% url 'login' %}">Войдите</a>, чтобы сохранить специалиста или выбрать его в проект.</p>
+  {% endif %}
+{% endblock %}

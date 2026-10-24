@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Каталог — Fiesta{% endblock %}
+
+{% block content %}
+  <h1>Каталог</h1>
+  <form class="stack" method="get">
+    {% for field in filter_form %}
+      <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+      {{ field }}
+    {% endfor %}
+    <button type="submit">Показать</button>
+  </form>
+  <div class="cards">
+    {% for specialist in specialists %}
+      <article class="card">
+        {% if specialist.main_photo_list %}
+          <img class="thumb" src="{{ specialist.main_photo_list.0.image.url }}" alt="">
+        {% endif %}
+        <h2><a href="{{ specialist.get_absolute_url }}">{{ specialist.first_name }} {{ specialist.last_name }}</a></h2>
+        <p>{{ specialist.category }}</p>
+        <p>
+          {% if specialist.service_price %}от {{ specialist.service_price }} бел. руб. за услугу{% endif %}
+          {% if specialist.hour_price %}от {{ specialist.hour_price }} бел. руб. за час{% endif %}
+        </p>
+        <p>
+          {% if specialist.rating_value %}
+            Рейтинг: {{ specialist.rating_value|floatformat:1 }}
+          {% else %}
+            Рейтинга пока нет
+          {% endif %}
+        </p>
+      </article>
+    {% empty %}
+      <p>Специалистов не найдено.</p>
+    {% endfor %}
+  </div>
+{% endblock %}
