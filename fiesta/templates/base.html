@@ -1,0 +1,45 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Fiesta{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/site.css' %}">
+</head>
+<body>
+  <header class="site-header">
+    <div class="bar">
+      <a class="brand" href="{% url 'home' %}">Fiesta</a>
+      <input id="nav-toggle" type="checkbox">
+      <label class="nav-toggle" for="nav-toggle">Меню</label>
+      <nav class="menu">
+        <a href="{% url 'home' %}">Главная</a>
+        <a href="{% url 'catalog' %}">Каталог</a>
+        <a href="{% url 'favorites' %}">Избранное</a>
+        <a href="{% url 'projects' %}">Проекты</a>
+        <a href="{% url 'questionnaire' %}">Анкета</a>
+        <a href="{% url 'portfolio' %}">Портфолио</a>
+        <a href="{% url 'user_profile' %}">Профиль пользователя</a>
+        <a href="{% url 'specialist_profile' %}">Профиль специалиста</a>
+        {% if user.is_authenticated %}
+          <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type="submit">Выход</button>
+          </form>
+        {% else %}
+          <a href="{% url 'login' %}">Вход</a>
+          <a href="{% url 'register_customer' %}">Регистрация пользователя</a>
+          <a href="{% url 'register_specialist' %}">Регистрация специалиста</a>
+        {% endif %}
+      </nav>
+    </div>
+    {% if user.is_authenticated %}
+      <p class="who">Вы вошли как {{ user.email }}</p>
+    {% endif %}
+  </header>
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

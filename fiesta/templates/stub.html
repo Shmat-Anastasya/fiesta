@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page_title }} — Fiesta{% endblock %}
+
+{% block content %}
+  <h1>{{ page_title }}</h1>
+  <p>{{ page_text }}</p>
+  {% if tabs %}
+    <div class="tabs">
+      {% for tab in tabs %}
+        <a href="{% url 'projects' %}?tab={{ tab.code }}" {% if tab.active %}class="active"{% endif %}>{{ tab.title }}</a>
+      {% endfor %}
+    </div>
+  {% endif %}
+  {% if links %}
+    <ul class="page-links">
+      {% for link in links %}
+        <li><a href="{% url link.url_name %}">{{ link.title }}</a></li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+{% endblock %}

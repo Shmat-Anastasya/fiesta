@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Вход — Fiesta{% endblock %}
+
+{% block content %}
+  <h1>Вход</h1>
+  <p>Это страница входа. Логин — почта.</p>
+  <form method="post">
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+      <ul class="errors">
+        {% for error in form.non_field_errors %}
+          <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+    {% for field in form %}
+      <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+      {{ field }}
+      {% for error in field.errors %}
+        <p class="errors">{{ error }}</p>
+      {% endfor %}
+    {% endfor %}
+    <button type="submit">Войти</button>
+  </form>
+{% endblock %}
