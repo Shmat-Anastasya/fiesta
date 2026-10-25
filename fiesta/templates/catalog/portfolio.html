@@ -3,8 +3,10 @@
 {% block title %}Портфолио — Fiesta{% endblock %}
 
 {% block content %}
-  <h1>Портфолио</h1>
+  <div class="cabinet">
   {% include "cabinet_nav.html" %}
+  <div class="cabinet-body">
+  <h1>Портфолио</h1>
   <form class="stack" method="post" enctype="multipart/form-data">
     {% csrf_token %}
     <label for="{{ form.album_title.id_for_label }}">{{ form.album_title.label }}</label>
@@ -18,19 +20,21 @@
   </form>
   {% for title, photos in albums %}
     <h2>{{ title }}</h2>
-    <div class="cards">
+    <div class="anketa-photos">
       {% for photo in photos %}
-        <div class="card">
-          <img class="thumb" src="{{ photo.image.url }}" alt="">
+        <article class="anketa-photo">
+          <img src="{{ photo.image.url }}" alt="">
           {% if photo.is_cover %}<p class="hint">Обложка</p>{% endif %}
           <form method="post">
             {% csrf_token %}
-            <button type="submit" name="delete_photo" value="{{ photo.pk }}">Удалить</button>
+            <button class="photo-delete" type="submit" name="delete_photo" value="{{ photo.pk }}">Удалить</button>
           </form>
-        </div>
+        </article>
       {% endfor %}
     </div>
   {% empty %}
     <p>Альбомов пока нет.</p>
   {% endfor %}
+  </div>
+  </div>
 {% endblock %}

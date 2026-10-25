@@ -1,0 +1,38 @@
+{% load static catalog_tags %}
+<article class="person catalog-card"{% if favorite_page %} data-favorite-card{% endif %}>
+  {% if user.is_authenticated and user.role == "customer" %}
+    <form method="post" action="{% url 'toggle_favorite' specialist.pk %}" data-async="favorite" data-filled="{% static 'img/icons/heart-filled.svg' %}" data-empty="{% static 'img/icons/heart.svg' %}"{% if favorite_page %} data-remove="card"{% endif %}>
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{% if favorite_page %}favorites{% else %}{{ request.get_full_path }}{% endif %}">
+      <button class="heart" type="submit" aria-label="Избранное">
+        {% if favorite_page or specialist.pk in favorite_ids %}
+          <img src="{% static 'img/icons/heart-filled.svg' %}" alt="" width="24" height="24">
+        {% else %}
+          <img src="{% static 'img/icons/heart.svg' %}" alt="" width="24" height="24">
+        {% endif %}
+      </button>
+    </form>
+  {% endif %}
+  <a href="{{ specialist.get_absolute_url }}">
+    {% if specialist.main_photo_list %}
+      <img class="photo" src="{{ specialist.main_photo_list.0.image.url }}" alt="">
+    {% else %}
+      <div class="photo photo-empty">{{ specialist.first_name|first }}</div>
+    {% endif %}
+    <h2>{{ specialist.last_name }} {{ specialist.first_name }}</h2>
+    <p class="person-rating">
+      <img src="{% static 'img/icons/star.svg' %}" alt="">
+      <span class="person-score">{% if specialist.rating_value %}{{ specialist.rating_value|floatformat:-1 }}{% else %}0{% endif %}</span>
+      {{ specialist.review_count|ru_reviews }}
+    </p>
+    <p class="person-price">
+      {% if specialist.service_price %}
+        Услуги от {{ specialist.service_price|floatformat:0 }} BYN
+      {% elif specialist.hour_price %}
+        от {{ specialist.hour_price|floatformat:0 }} BYN в час
+      {% else %}
+        Цена не указана
+      {% endif %}
+    </p>
+  </a>
+</article>

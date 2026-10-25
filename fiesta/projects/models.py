@@ -300,3 +300,23 @@ class Review(models.Model):
 
     def __str__(self):
         return f"{self.author} — {self.specialist} ({self.rating})"
+
+
+class ReviewPhoto(models.Model):
+    review = models.ForeignKey(
+        Review,
+        on_delete=models.CASCADE,
+        related_name="photos",
+        verbose_name="Отзыв",
+    )
+    image = models.ImageField("Изображение", upload_to="reviews/")
+    sort_order = models.PositiveIntegerField("Порядок", default=0)
+
+    class Meta:
+        db_table = "review_photo"
+        verbose_name = "Фото отзыва"
+        verbose_name_plural = "Фото отзывов"
+        ordering = ["sort_order", "pk"]
+
+    def __str__(self):
+        return f"{self.review} — {self.sort_order}"

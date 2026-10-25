@@ -3,27 +3,26 @@
 {% block title %}Вход — Fiesta{% endblock %}
 
 {% block content %}
-  <h1>Вход</h1>
-  <form class="stack" method="post">
-    {% csrf_token %}
-    {% if form.non_field_errors %}
-      <ul class="errors">
-        {% for error in form.non_field_errors %}
-          <li>{{ error }}</li>
+  <div class="auth login-page">
+    <h1>Вход</h1>
+    <form class="login-form" method="post">
+      {% csrf_token %}
+      {% if form.non_field_errors %}
+        <ul class="errors">
+          {% for error in form.non_field_errors %}
+            <li>{{ error }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+      {% for field in form %}
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% for error in field.errors %}
+          <p class="errors">{{ error }}</p>
         {% endfor %}
-      </ul>
-    {% endif %}
-    {% for field in form %}
-      <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-      {{ field }}
-      {% for error in field.errors %}
-        <p class="errors">{{ error }}</p>
       {% endfor %}
-    {% endfor %}
-    <button type="submit">Войти</button>
-  </form>
-  <p class="page-links">
-    <a href="{% url 'register' %}">Регистрация пользователя</a><br>
-    <a href="{% url 'register_specialist' %}">Регистрация специалиста</a>
-  </p>
+      <button type="submit">Войти</button>
+    </form>
+    <p class="auth-note">У вас еще нет аккаунта? <a class="auth-link" href="{% url 'register' %}">Зарегистрироваться</a></p>
+  </div>
 {% endblock %}

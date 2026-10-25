@@ -3,15 +3,26 @@
 {% block title %}Главная — Fiesta{% endblock %}
 
 {% block content %}
-  <h1>Fiesta</h1>
-  <p>Специалисты для частных мероприятий в Минске. Цены в белорусских рублях.</p>
-  <p><a href="{% url 'catalog' %}">Открыть каталог</a></p>
-  <h2>Категории</h2>
-  <ul>
-    {% for category in categories %}
-      <li><a href="{% url 'catalog' %}?category={{ category.pk }}">{{ category.name }}</a></li>
-    {% empty %}
-      <li>Категорий пока нет.</li>
-    {% endfor %}
-  </ul>
+  <section class="hero">
+    <div>
+      <h1>Планируй свой праздник самостоятельно</h1>
+      <p class="lead">Подбери специалистов в Минске и собери команду на одно мероприятие. Цены указаны в белорусских рублях.</p>
+    </div>
+    <a class="login-pill" href="{% url 'catalog' %}">Открыть каталог</a>
+  </section>
+  <h2>Как это устроено</h2>
+  <div class="steps">
+    <article>
+      <span>1</span>
+      <p>Откройте каталог и сравните цены и рейтинг.</p>
+    </article>
+    <article>
+      <span>2</span>
+      <p>Создайте проект и выберите одного специалиста на роль.</p>
+    </article>
+    <article>
+      <span>3</span>
+      <p>После праздника оставьте отзыв. Специалист может ответить.</p>
+    </article>
+  </div>
 {% endblock %}

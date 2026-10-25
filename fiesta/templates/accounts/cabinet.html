@@ -1,23 +1,120 @@
 {% extends "base.html" %}
+{% load static %}
 
-{% block title %}Профиль — Fiesta{% endblock %}
+{% block title %}Личный кабинет — Fiesta{% endblock %}
 
 {% block content %}
-  <h1>Профиль</h1>
-  {% include "cabinet_nav.html" %}
-  <p class="hint">{{ user.email }}. Город: Минск.</p>
-  {% if profile.photo %}
-    <img class="thumb" src="{{ profile.photo.url }}" alt="">
+  <p class="crumbs"><a href="{% url 'home' %}">Главная</a> · Личный кабинет</p>
+  <h1>Личный кабинет</h1>
+  <div class="cabinet">
+    {% include "cabinet_nav.html" %}
+    <div class="cabinet-body">
+      {% if profile %}
+      <div class="banner">
+        {% if profile.photo %}
+          <img id="banner-photo" class="banner-photo" src="{{ profile.photo.url }}" alt="">
+        {% else %}
+          <img id="banner-photo" class="banner-photo" src="{% static 'img/icons/user.svg' %}" alt="">
+        {% endif %}
+        <div>
+          <h2>{{ profile.first_name }} {{ profile.last_name }}</h2>
+          <p>{{ user.email }}</p>
+        </div>
+      </div>
+
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+          {% for error in form.non_field_errors %}
+            <p class="errors">{{ error }}</p>
+          {% endfor %}
+        {% endif %}
+
+        <h2 class="section-title">Основная информация</h2>
+        <p class="field-label">Аватар</p>
+        <div class="avatar-edit">
+          {% if profile.photo %}
+            <img id="avatar-preview" class="avatar-preview" src="{{ profile.photo.url }}" alt="">
+          {% else %}
+            <img id="avatar-preview" class="avatar-preview" src="{% static 'img/icons/user.svg' %}" alt="">
+          {% endif %}
+          <label class="avatar-add" for="{{ form.photo.id_for_label }}">
+            <img src="{% static 'img/icons/plus.svg' %}" alt="Загрузить фото">
+          </label>
+          {{ form.photo }}
+        </div>
+        {% for error in form.photo.errors %}
+          <p class="errors">{{ error }}</p>
+        {% endfor %}
+
+        <label for="{{ form.first_name.id_for_label }}">{{ form.first_name.label }}</label>
+        {{ form.first_name }}
+        {% for error in form.first_name.errors %}<p class="errors">{{ error }}</p>{% endfor %}
+
+        <label for="{{ form.last_name.id_for_label }}">{{ form.last_name.label }}</label>
+        {{ form.last_name }}
+        {% for error in form.last_name.errors %}<p class="errors">{{ error }}</p>{% endfor %}
+
+        <label for="{{ form.patronymic.id_for_label }}">{{ form.patronymic.label }}</label>
+        {{ form.patronymic }}
+        {% for error in form.patronymic.errors %}<p class="errors">{{ error }}</p>{% endfor %}
+
+        <label for="{{ form.birth_date.id_for_label }}">{{ form.birth_date.label }}</label>
+        <div class="date-field">
+          {{ form.birth_date }}
+        </div>
+        {% for error in form.birth_date.errors %}<p class="errors">{{ error }}</p>{% endfor %}
+
+        <h2 class="section-title">Контактные данные</h2>
+        <div class="contact-grid">
+          <div>
+            <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+            {{ form.email }}
+            {% for error in form.email.errors %}<p class="errors">{{ error }}</p>{% endfor %}
+          </div>
+          <div>
+            <label for="{{ form.phone.id_for_label }}">{{ form.phone.label }}</label>
+            {{ form.phone }}
+            {% for error in form.phone.errors %}<p class="errors">{{ error }}</p>{% endfor %}
+          </div>
+        </div>
+
+        <h2 class="section-title">Социальные сети</h2>
+        <div class="icon-field">
+          <img src="{% static 'img/icons/telegram.svg' %}" alt="">
+          <label class="visually-hidden" for="{{ form.telegram.id_for_label }}">{{ form.telegram.label }}</label>
+          {{ form.telegram }}
+        </div>
+        {% for error in form.telegram.errors %}<p class="errors">{{ error }}</p>{% endfor %}
+        <div class="icon-field">
+          <img src="{% static 'img/icons/instagram.svg' %}" alt="">
+          <label class="visually-hidden" for="{{ form.instagram.id_for_label }}">{{ form.instagram.label }}</label>
+          {{ form.instagram }}
+        </div>
+        {% for error in form.instagram.errors %}<p class="errors">{{ error }}</p>{% endfor %}
+        <div class="icon-field">
+          <img src="{% static 'img/icons/pinterest.svg' %}" alt="">
+          <label class="visually-hidden" for="{{ form.pinterest.id_for_label }}">{{ form.pinterest.label }}</label>
+          {{ form.pinterest }}
+        </div>
+        {% for error in form.pinterest.errors %}<p class="errors">{{ error }}</p>{% endfor %}
+
+        <button type="submit">Сохранить изменения</button>
+      </form>
+      {% else %}
+        <p>Вы вошли как администратор. Нажмите «Выйти», и в шапке снова будет кнопка «Войти».</p>
+      {% endif %}
+    </div>
+  </div>
+  {% if form %}
+  <script>
+    document.getElementById("{{ form.photo.id_for_label }}").addEventListener("change", function () {
+      const file = this.files && this.files[0];
+      if (!file) return;
+      const url = URL.createObjectURL(file);
+      document.getElementById("avatar-preview").src = url;
+      document.getElementById("banner-photo").src = url;
+    });
+  </script>
   {% endif %}
-  <form class="stack" method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    {% for field in form %}
-      <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-      {{ field }}
-      {% for error in field.errors %}
-        <p class="errors">{{ error }}</p>
-      {% endfor %}
-    {% endfor %}
-    <button type="submit">Сохранить</button>
-  </form>
 {% endblock %}

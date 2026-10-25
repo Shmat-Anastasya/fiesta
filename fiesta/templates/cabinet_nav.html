@@ -1,7 +1,7 @@
-<nav class="tabs">
-  <a href="{% url 'cabinet' %}" {% if section == "main" %}class="active"{% endif %}>Основное</a>
+<aside class="side">
+  <a href="{% url 'cabinet' %}" {% if section == "main" %}class="active"{% endif %}>Профиль</a>
   {% if user.role == "customer" %}
-    <a href="{% url 'favorites' %}" {% if section == "favorites" %}class="active"{% endif %}>Избранное</a>
+    <a href="{% url 'favorites' %}" {% if section == "favorites" %}class="active"{% endif %}>Избранные</a>
     <a href="{% url 'projects' %}" {% if section == "projects" %}class="active"{% endif %}>Проекты</a>
   {% else %}
     <a href="{% url 'questionnaire' %}" {% if section == "questionnaire" %}class="active"{% endif %}>Анкета</a>
@@ -12,4 +12,4 @@
     {% csrf_token %}
     <button type="submit">Выйти</button>
   </form>
-</nav>
+</aside>

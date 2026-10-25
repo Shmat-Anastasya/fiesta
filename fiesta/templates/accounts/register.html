@@ -1,27 +1,32 @@
 {% extends "base.html" %}
 
-{% block title %}{{ page_title }} — Fiesta{% endblock %}
+{% block title %}Регистрация — Fiesta{% endblock %}
 
 {% block content %}
-  <h1>{{ page_title }}</h1>
-  <p class="hint">Город — Минск. Пароль не короче 8 символов и не состоит только из цифр.</p>
-  <form class="stack" method="post">
-    {% csrf_token %}
-    {% if form.non_field_errors %}
-      <ul class="errors">
-        {% for error in form.non_field_errors %}
-          <li>{{ error }}</li>
+  <div class="auth login-page">
+    <h1>Регистрация</h1>
+    <div class="role-switch">
+      <a href="{% url 'register' %}" {% if "/specialist/" not in request.path %}class="active"{% endif %}>Я пользователь</a>
+      <a href="{% url 'register_specialist' %}" {% if "/specialist/" in request.path %}class="active"{% endif %}>Я специалист</a>
+    </div>
+    <form method="post">
+      {% csrf_token %}
+      {% if form.non_field_errors %}
+        <ul class="errors">
+          {% for error in form.non_field_errors %}
+            <li>{{ error }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+      {% for field in form %}
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% for error in field.errors %}
+          <p class="errors">{{ error }}</p>
         {% endfor %}
-      </ul>
-    {% endif %}
-    {% for field in form %}
-      <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-      {{ field }}
-      {% for error in field.errors %}
-        <p class="errors">{{ error }}</p>
       {% endfor %}
-    {% endfor %}
-    <button type="submit">Зарегистрироваться</button>
-  </form>
-  <p class="page-links"><a href="{% url 'login' %}">Уже есть аккаунт</a></p>
+      <button type="submit">Зарегистрироваться</button>
+    </form>
+    <p class="auth-note">У вас уже есть аккаунт? <a class="auth-link" href="{% url 'login' %}">Войти</a></p>
+  </div>
 {% endblock %}

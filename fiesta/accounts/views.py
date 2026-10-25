@@ -11,7 +11,7 @@ from .forms import (
     SpecialistRegistrationForm,
     UserProfileForm,
 )
-from .models import Account
+from .models import Account, SpecialistProfile, UserProfile
 
 
 def login_view(request):
@@ -49,13 +49,25 @@ def _register(request, form_class, title):
 
 def _profile(user):
     if user.role == Account.Role.CUSTOMER:
-        return user.user_profile
-    return user.specialist_profile
+        try:
+            return user.user_profile
+        except UserProfile.DoesNotExist:
+            return None
+    try:
+        return user.specialist_profile
+    except SpecialistProfile.DoesNotExist:
+        return None
 
 
 @login_required
 def cabinet(request):
     profile = _profile(request.user)
+    if profile is None:
+        return render(
+            request,
+            "accounts/cabinet.html",
+            {"form": None, "profile": None, "section": "main"},
+        )
     form_class = (
         UserProfileForm
         if request.user.role == Account.Role.CUSTOMER

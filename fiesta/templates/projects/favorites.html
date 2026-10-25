@@ -3,21 +3,17 @@
 {% block title %}Избранное — Fiesta{% endblock %}
 
 {% block content %}
-  <h1>Избранное</h1>
+  <div class="cabinet">
   {% include "cabinet_nav.html" %}
-  <div class="cards">
+  <div class="cabinet-body">
+  <h1>Избранное</h1>
+  <div class="favorite-grid">
     {% for item in items %}
-      <article class="card">
-        <h2><a href="{{ item.specialist.get_absolute_url }}">{{ item.specialist.first_name }} {{ item.specialist.last_name }}</a></h2>
-        <p>{{ item.specialist.category }}</p>
-        <form method="post" action="{% url 'toggle_favorite' item.specialist.pk %}">
-          {% csrf_token %}
-          <input type="hidden" name="next" value="favorites">
-          <button type="submit">Убрать</button>
-        </form>
-      </article>
+      {% include "catalog/_person_card.html" with specialist=item.specialist favorite_page=True %}
     {% empty %}
       <p>Список пуст.</p>
     {% endfor %}
+  </div>
+  </div>
   </div>
 {% endblock %}

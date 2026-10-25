@@ -5,23 +5,36 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}Fiesta{% endblock %}</title>
-  <link rel="stylesheet" href="{% static 'css/site.css' %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/site.css' %}?v=65">
 </head>
 <body>
+  <div class="header-space"></div>
   <header class="site-header">
     <div class="bar">
-      <a class="brand" href="{% url 'home' %}">Fiesta</a>
-      <input id="nav-toggle" type="checkbox">
-      <label class="nav-toggle" for="nav-toggle">Меню</label>
+      <a class="brand" href="{% url 'home' %}">
+        <img class="logo" src="{% static 'img/logo.svg' %}" alt="Fiesta">
+        <span class="city"><img src="{% static 'img/icons/map.svg' %}" alt="">Минск</span>
+      </a>
       <nav class="menu">
-        <a href="{% url 'home' %}">Главная</a>
-        <a href="{% url 'catalog' %}">Каталог</a>
-        {% if user.is_authenticated %}
-          <a href="{% url 'cabinet' %}">{{ cabinet_name }}</a>
-        {% else %}
-          <a href="{% url 'login' %}">Вход</a>
-        {% endif %}
+        <a href="{% url 'catalog' %}" {% if "/catalog" in request.path or "/specialists/" in request.path %}class="active"{% endif %}>Каталог</a>
       </nav>
+      {% if user.is_authenticated %}
+        <div class="header-account">
+          {% if user.role == "customer" %}
+            <a class="header-heart" href="{% url 'favorites' %}" aria-label="Избранное">
+              <img src="{% static 'img/icons/heart-filled.svg' %}" alt="" width="24" height="24">
+            </a>
+          {% endif %}
+          <a class="avatar" href="{% url 'cabinet' %}">
+            <img src="{% static 'img/icons/user.svg' %}" alt="Профиль">
+          </a>
+        </div>
+      {% else %}
+        <a class="login-pill" href="{% url 'login' %}">Войти</a>
+      {% endif %}
     </div>
   </header>
   <main>
@@ -32,7 +45,119 @@
         {% endfor %}
       </ul>
     {% endif %}
-    {% block content %}{% endblock %}
+    <div class="wrap">
+      {% block content %}{% endblock %}
+    </div>
   </main>
+  <footer class="site-footer">
+    <div class="footer-card">
+      <div class="footer-grid">
+        <div>
+          <img class="footer-logo" src="{% static 'img/logo-futer.svg' %}" alt="Fiesta">
+          <div class="footer-social">
+            <a href="https://www.instagram.com/_._.nastusha._._/?hl=ru" target="_blank" rel="noopener noreferrer">
+              <img src="{% static 'img/icons/instagram.svg' %}" alt="Instagram">
+            </a>
+            <a href="https://ru.pinterest.com/shmatnastya2005/" target="_blank" rel="noopener noreferrer">
+              <img src="{% static 'img/icons/pinterest.svg' %}" alt="Pinterest">
+            </a>
+            <a href="https://t.me/nastusha_shmat" target="_blank" rel="noopener noreferrer">
+              <img src="{% static 'img/icons/telegram.svg' %}" alt="Telegram">
+            </a>
+          </div>
+        </div>
+        <div class="footer-aside">
+        <div>
+          <strong>Каталог</strong>
+          <ul>
+            {% for category in footer_categories %}
+              <li><a href="{% url 'category_catalog' category.pk %}">{{ category.label }}</a></li>
+            {% endfor %}
+            <li><a class="footer-all" href="{% url 'catalog' %}">Все категории</a></li>
+          </ul>
+        </div>
+        <div>
+          <strong>Профиль</strong>
+          <ul>
+            {% if user.is_authenticated %}
+              {% if user.role == "customer" %}
+                <li><a href="{% url 'favorites' %}">Избранное</a></li>
+                <li><a href="{% url 'projects' %}">Проекты</a></li>
+              {% else %}
+                <li><a href="{% url 'questionnaire' %}">Анкета</a></li>
+                <li><a href="{% url 'portfolio' %}">Портфолио</a></li>
+                <li><a href="{% url 'specialist_reviews' %}">Отзывы</a></li>
+              {% endif %}
+            {% else %}
+              <li><a href="{% url 'login' %}">Вход</a></li>
+              <li><a href="{% url 'register' %}">Регистрация</a></li>
+            {% endif %}
+          </ul>
+        </div>
+        <div>
+          <strong>Fiesta</strong>
+          <div class="footer-contacts">
+            <p><a href="tel:+375441234567">+375 44 123 45 67</a></p>
+            <p><a href="mailto:InfiFiesta@mail.fi">InfiFiesta@mail.fi</a></p>
+            <p>Минск, Чюрлёниса, 1, каб. 8</p>
+          </div>
+        </div>
+        </div>
+      </div>
+      <p class="copy">© 2026 Fiesta</p>
+    </div>
+  </footer>
+  <script>
+    document.addEventListener("submit", async (event) => {
+      const form = event.target;
+      if (!(form instanceof HTMLFormElement)) return;
+      const kind = form.dataset.async;
+      if (kind !== "favorite" && kind !== "review") return;
+      event.preventDefault();
+      const button = form.querySelector("[type=submit]");
+      if (button) button.disabled = true;
+      try {
+        const response = await fetch(form.action, {
+          method: "POST",
+          body: new FormData(form),
+          headers: { "X-Requested-With": "fetch", "Accept": "application/json" },
+        });
+        const data = await response.json();
+        if (kind === "favorite") {
+          if (!data.ok) return;
+          const image = form.querySelector("img");
+          if (image) image.src = data.favorite ? form.dataset.filled : form.dataset.empty;
+          if (form.dataset.remove === "card" && data.favorite === false) {
+            const card = form.closest("[data-favorite-card]");
+            const list = card && card.parentElement;
+            if (card) card.remove();
+            if (list && !list.querySelector("[data-favorite-card]")) {
+              list.insertAdjacentHTML("beforeend", "<p>Список пуст.</p>");
+            }
+          }
+          return;
+        }
+        if (!data.ok) {
+          let note = form.querySelector(".errors");
+          if (!note) {
+            note = document.createElement("p");
+            note.className = "errors";
+            button.before(note);
+          }
+          note.hidden = false;
+          note.textContent = data.error || "Не получилось отправить отзыв";
+          return;
+        }
+        const done = document.createElement("p");
+        done.className = "hint";
+        done.textContent = "Отзыв оставлен.";
+        form.replaceWith(done);
+      } catch (error) {
+        form.submit();
+      } finally {
+        if (button && form.isConnected) button.disabled = false;
+      }
+    });
+  </script>
 </body>
 </html>

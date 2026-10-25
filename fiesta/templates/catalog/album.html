@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ title }} — {{ specialist.first_name }} {{ specialist.last_name }} — Fiesta{% endblock %}
+
+{% block content %}
+  <p class="crumbs specialist-crumbs">
+    <a href="{% url 'home' %}">Главная</a> &gt;
+    <a href="{% url 'catalog' %}">Каталог</a> &gt;
+    <a href="{% url 'category_catalog' specialist.category.pk %}">{{ category_label }}</a> &gt;
+    <a href="{{ specialist.get_absolute_url }}">{{ specialist.first_name }} {{ specialist.last_name }}</a> &gt;
+    {{ title }}
+  </p>
+  <h1 class="album-title">{{ title }}</h1>
+  <div class="album-grid">
+    {% for photo in photos %}
+      <img src="{{ photo.image.url }}" alt="">
+    {% endfor %}
+  </div>
+{% endblock %}

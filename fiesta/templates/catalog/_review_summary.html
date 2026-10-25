@@ -1,0 +1,24 @@
+{% load static %}
+<div class="rating-summary">
+  <div class="rating-bars">
+    {% for row in rating_rows %}
+      <div class="rating-row">
+        <span>{{ row.score }}</span>
+        <span class="rating-bar"><span style="width: {{ row.percent }}%"></span></span>
+        <span>{{ row.count }}</span>
+      </div>
+    {% endfor %}
+  </div>
+  <div class="rating-score-block">
+    <p class="rating-big">{{ rating_score }}</p>
+    <div class="rating-stars">
+      {% for star in summary_filled %}
+        <img src="{% static 'img/icons/star-filled.svg' %}" alt="">
+      {% endfor %}
+      {% for star in summary_empty %}
+        <img src="{% static 'img/icons/star.svg' %}" alt="">
+      {% endfor %}
+    </div>
+    <p class="rating-total">{{ review_total }}</p>
+  </div>
+</div>

@@ -1,79 +1,559 @@
 {% extends "base.html" %}
+{% load static catalog_tags %}
 
-{% block title %}{{ specialist.first_name }} {{ specialist.last_name }} — Fiesta{% endblock %}
+{% block title %}{{ specialist.category }} {{ specialist.first_name }} {{ specialist.last_name }} — Fiesta{% endblock %}
 
 {% block content %}
-  <h1>{{ specialist.first_name }} {{ specialist.last_name }}</h1>
-  <p>{{ specialist.category }}. Минск.</p>
-  {% if experience_years != None %}
-    <p>Опыт: {{ experience_years }} лет. Начало карьеры: {{ specialist.career_start }}.</p>
-  {% endif %}
-  <p>{{ specialist.description }}</p>
+  <p class="crumbs specialist-crumbs">
+    <a href="{% url 'home' %}">Главная</a> &gt;
+    <a href="{% url 'catalog' %}">Каталог</a> &gt;
+    <a href="{% url 'category_catalog' specialist.category.pk %}">{{ category_label }}</a> &gt;
+    {{ specialist.first_name }} {{ specialist.last_name }}
+  </p>
 
-  <h2>Цены</h2>
-  <ul>
-    {% for price in prices %}
-      <li>от {{ price.amount }} бел. руб. — {{ price.price_field.label }}</li>
-    {% empty %}
-      <li>Цены не указаны.</li>
-    {% endfor %}
-  </ul>
+  <div class="specialist-page">
+    <h1>{{ specialist.category }} {{ specialist.last_name }} {{ specialist.first_name }}</h1>
+    <div class="spec-brief">
+      <p>{{ category_label }} | {{ specialist.city }}</p>
+      {% if experience_line or specialist.discount_text %}
+        <p>
+          {{ experience_line }}{% if experience_line and specialist.discount_text %} | {% endif %}{{ specialist.discount_text }}
+        </p>
+      {% endif %}
+    </div>
 
-  <h2>Фото</h2>
-  <div class="cards">
-    {% for photo in main_photos %}
-      <img class="thumb" src="{{ photo.image.url }}" alt="">
-    {% empty %}
-      <p>Главных фото нет.</p>
-    {% endfor %}
+    {% if main_photos %}
+      <div class="spec-gallery{% if gallery_side %} has-side{% endif %}{% if gallery_side|length == 4 %} is-full{% endif %}">
+        <button class="spec-shot spec-lead" type="button" onclick="document.getElementById('spec-lightbox').showModal()">
+          <img src="{{ main_photos.0.image.url }}" alt="">
+        </button>
+        {% if gallery_side %}
+          <div class="spec-side-photos">
+            {% for photo in gallery_side %}
+              <button class="spec-shot" type="button" onclick="document.getElementById('spec-lightbox').showModal()">
+                <img src="{{ photo.image.url }}" alt="">
+                {% if forloop.last and gallery_more %}
+                  <span class="spec-more">+ {{ gallery_more }} фото</span>
+                {% endif %}
+              </button>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+    {% endif %}
+
+    <div class="profile-layout">
+    <div>
+      <h2 class="spec-fio">{{ specialist.last_name }} {{ specialist.first_name }}{% if specialist.patronymic %} {{ specialist.patronymic }}{% endif %}</h2>
+      <div class="spec-actions">
+        <p class="spec-busy">
+          <img src="{% static 'img/icons/calendar.svg' %}" alt="" width="24" height="24">
+          <span>Проверить занятость</span>
+        </p>
+        <div class="spec-links">
+          {% if user.is_authenticated and user.role == "customer" %}
+            <form method="post" action="{% url 'toggle_favorite' specialist.pk %}" data-async="favorite" data-filled="{% static 'img/icons/heart-filled.svg' %}" data-empty="{% static 'img/icons/heart.svg' %}">
+              {% csrf_token %}
+              <input type="hidden" name="next" value="{{ request.get_full_path }}">
+              <button class="spec-icon" type="submit" aria-label="Избранное">
+                {% if is_favorite %}
+                  <img src="{% static 'img/icons/heart-filled.svg' %}" alt="" width="24" height="24">
+                {% else %}
+                  <img src="{% static 'img/icons/heart.svg' %}" alt="" width="24" height="24">
+                {% endif %}
+              </button>
+            </form>
+          {% endif %}
+          {% if contacts.instagram %}
+            <a class="spec-icon" href="{{ contacts.instagram }}" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+              <img src="{% static 'img/icons/instagram.svg' %}" alt="" width="24" height="24">
+            </a>
+          {% endif %}
+          {% if contacts.pinterest %}
+            <a class="spec-icon" href="{{ contacts.pinterest }}" target="_blank" rel="noopener noreferrer" aria-label="Pinterest">
+              <img src="{% static 'img/icons/pinterest.svg' %}" alt="" width="24" height="24">
+            </a>
+          {% endif %}
+          {% if contacts.telegram %}
+            <a class="spec-icon" href="{{ contacts.telegram }}" target="_blank" rel="noopener noreferrer" aria-label="Telegram">
+              <img src="{% static 'img/icons/telegram.svg' %}" alt="" width="24" height="24">
+            </a>
+          {% endif %}
+        </div>
+      </div>
+      {% if specialist.description %}
+        <section class="spec-about">
+          <h2>Описание</h2>
+          <div class="spec-about-text">{{ specialist.description|linebreaksbr }}</div>
+        </section>
+      {% endif %}
+
+      {% if detail_groups %}
+        <section class="spec-details">
+          <h2>Детали</h2>
+          {% for group in detail_groups %}
+            <h3 class="spec-detail-label">{{ group.title }}</h3>
+            <div class="spec-pills">
+              {% for option in group.options %}
+                <span>{{ option }}</span>
+              {% endfor %}
+            </div>
+          {% endfor %}
+        </section>
+      {% endif %}
+
+      <section class="spec-block">
+        <h2>Портфолио</h2>
+        {% if albums %}
+          <div class="spec-portfolio">
+            {% for title, photos in albums %}
+              <article class="person">
+                <a href="{% url 'album_detail' specialist.pk title %}">
+                  <img class="photo" src="{{ photos.0.image.url }}" alt="">
+                  <h2>{{ title }}</h2>
+                </a>
+              </article>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="empty-note">Портфолио пока нет</p>
+        {% endif %}
+      </section>
+
+      <section class="spec-block spec-offers">
+        <h2>Услуги</h2>
+        {% if packages %}
+          <div class="offer-slider" data-offer-slider>
+            <div class="offer-viewport">
+              <div class="offer-track">
+                {% for package in packages %}
+                  <article class="offer">
+                    <h3 class="offer-title">{{ package.title }}</h3>
+                    {% if package.hours_label %}
+                      <p class="offer-hours">{{ package.hours_label }}</p>
+                    {% endif %}
+                    <p class="offer-season">
+                      <span>Сезон</span>
+                      <span>от {{ package.season_from|floatformat:0 }} BYN до {{ package.season_to|floatformat:0 }} BYN</span>
+                    </p>
+                    {% if package.description_first or package.description_rest %}
+                      <h3 class="offer-label">Описание</h3>
+                      <p class="offer-text">{{ package.description_first }}{% if package.description_rest %}<span class="offer-rest">{{ package.description_rest|linebreaksbr }}</span>{% endif %}</p>
+                    {% endif %}
+                    {% if package.included %}
+                      <div class="offer-extra">
+                        <h3 class="offer-label">Что включено</h3>
+                        <p>{{ package.included|linebreaksbr }}</p>
+                      </div>
+                    {% endif %}
+                    {% if package.description_rest or package.included %}
+                      <button class="offer-more" type="button" aria-expanded="false">Узнать больше</button>
+                    {% endif %}
+                  </article>
+                {% endfor %}
+              </div>
+            </div>
+            {% if offer_pages %}
+              <div class="offer-dots">
+                {% for page in offer_pages %}
+                  <button class="offer-dot{% if forloop.first %} is-active{% endif %}" type="button" data-page="{{ page }}" aria-label="Страница {{ forloop.counter }}"{% if forloop.first %} aria-current="true"{% endif %}></button>
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+        {% else %}
+          <p class="empty-note">Услуг пока нет</p>
+        {% endif %}
+      </section>
+
+      <section class="spec-block spec-reviews" id="reviews">
+        <div class="spec-reviews-head">
+          <h2>Отзывы</h2>
+          {% if reviews %}
+            <label class="review-sort">
+              <select aria-label="Сортировка">
+                <option>По популярности</option>
+              </select>
+              <img src="{% static 'img/icons/chevron-down.svg' %}" alt="" width="16" height="16">
+            </label>
+          {% endif %}
+        </div>
+        <template id="review-sort-template">
+          <label class="review-sort">
+            <select aria-label="Сортировка">
+              <option>По популярности</option>
+            </select>
+            <img src="{% static 'img/icons/chevron-down.svg' %}" alt="" width="16" height="16">
+          </label>
+        </template>
+        {% if reviews %}
+          {% include "catalog/_review_summary.html" %}
+        {% endif %}
+        <button class="login-pill review-add" type="button" data-open-dialog="{% if review_state == 'form' %}review-form{% elif review_state == 'done' %}review-done{% else %}review-denied{% endif %}">Добавить отзыв</button>
+        {% if reviews %}
+          <div class="review-slider" data-review-slider>
+            <div class="review-viewport">
+              <div class="review-track">
+                {% for review in reviews %}
+                  {% include "catalog/_review_card.html" %}
+                {% endfor %}
+              </div>
+            </div>
+            {% if review_pages %}
+              <div class="review-dots">
+                {% for page in review_pages %}
+                  <button class="offer-dot{% if forloop.first %} is-active{% endif %}" type="button" data-page="{{ page }}" aria-label="Страница {{ forloop.counter }}"{% if forloop.first %} aria-current="true"{% endif %}></button>
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+        {% else %}
+          <p class="empty-note">Отзывов пока нет</p>
+        {% endif %}
+      </section>
+
+      {% if similar %}
+        <section class="spec-block">
+          <h2>Похожие специалисты</h2>
+          <div class="similar-grid">
+            {% for item in similar %}
+              <article class="person">
+                <a href="{{ item.get_absolute_url }}">
+                  {% if item.main_list %}
+                    <img class="photo" src="{{ item.main_list.0.image.url }}" alt="">
+                  {% else %}
+                    <span class="photo spec-empty"></span>
+                  {% endif %}
+                  <h2>{{ item.first_name }} {{ item.last_name }}</h2>
+                  <p class="person-rating">
+                    {% if item.rating_value %}
+                      <img src="{% static 'img/icons/star-filled.svg' %}" alt="">
+                      {{ item.rating_value|floatformat:1 }} {{ item.review_count|ru_reviews }}
+                    {% else %}
+                      <span class="hint">Нет отзывов</span>
+                    {% endif %}
+                  </p>
+                  {% if item.service_price %}
+                    <p class="person-price">от {{ item.service_price|floatformat:0 }} BYN</p>
+                  {% endif %}
+                </a>
+              </article>
+            {% endfor %}
+          </div>
+        </section>
+      {% endif %}
+    </div>
+
+    <aside class="spec-card">
+      <button class="login-pill spec-action" type="button" onclick="document.getElementById('ask-dialog').showModal()">Задать вопрос специалисту</button>
+      <div class="spec-contacts">
+        <h2>Контакты</h2>
+        {% if contacts.phone %}
+          <a href="tel:{{ contacts.phone }}">{{ contacts.phone }}</a>
+        {% endif %}
+        {% if contacts.email %}
+          <a href="mailto:{{ contacts.email }}">{{ contacts.email }}</a>
+        {% endif %}
+        <div class="spec-socials">
+          {% if contacts.instagram %}
+            <a href="{{ contacts.instagram }}" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+              <img src="{% static 'img/icons/instagram.svg' %}" alt="" width="32" height="32">
+            </a>
+          {% endif %}
+          {% if contacts.pinterest %}
+            <a href="{{ contacts.pinterest }}" target="_blank" rel="noopener noreferrer" aria-label="Pinterest">
+              <img src="{% static 'img/icons/pinterest.svg' %}" alt="" width="32" height="32">
+            </a>
+          {% endif %}
+          {% if contacts.telegram %}
+            <a href="{{ contacts.telegram }}" target="_blank" rel="noopener noreferrer" aria-label="Telegram">
+              <img src="{% static 'img/icons/telegram.svg' %}" alt="" width="32" height="32">
+            </a>
+          {% endif %}
+        </div>
+      </div>
+      {% if add_form %}
+        <button class="login-pill spec-action" type="button" onclick="document.getElementById('project-dialog').showModal()">Добавить в проект</button>
+        <p class="hint">В проекте роль будет «{{ specialist.category }}».</p>
+      {% elif not user.is_authenticated %}
+        <a class="login-pill spec-action" href="{% url 'login' %}">Добавить в проект</a>
+      {% endif %}
+    </aside>
+    </div>
   </div>
 
-  <h2>Портфолио</h2>
-  {% for title, photos in albums %}
-    <h3>{{ title }}</h3>
-    <div class="cards">
-      {% for photo in photos %}
-        <img class="thumb" src="{{ photo.image.url }}" alt="">
-      {% endfor %}
-    </div>
-  {% empty %}
-    <p>Альбомов нет.</p>
-  {% endfor %}
-
-  <h2>Отзывы</h2>
-  {% for review in reviews %}
-    <article class="card">
-      <p>Оценка: {{ review.rating }}</p>
-      <p>{{ review.text }}</p>
-      <p class="hint">{{ review.author.first_name }} {{ review.author.last_name }}, {{ review.created_at }}</p>
-      {% if review.reply %}
-        <p>Ответ: {{ review.reply }}</p>
-      {% endif %}
-    </article>
-  {% empty %}
-    <p>Отзывов нет.</p>
-  {% endfor %}
-
-  {% if user.is_authenticated and user.role == "customer" %}
-    <form method="post" action="{% url 'toggle_favorite' specialist.pk %}">
+  <dialog class="popup" id="ask-dialog">
+    <form method="post" action="{{ specialist.get_absolute_url }}">
       {% csrf_token %}
-      <button type="submit">{% if is_favorite %}Убрать из избранного{% else %}В избранное{% endif %}</button>
+      <button class="popup-close" type="button" onclick="this.closest('dialog').close()" aria-label="Закрыть">
+        <img src="{% static 'img/icons/close.svg' %}" alt="" width="22" height="22">
+      </button>
+      <h2>Задать вопрос специалисту</h2>
+      <p class="hint">Оставьте вопрос — ответ придёт на почту.</p>
+      {% for field in question_form %}
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+      {% endfor %}
+      <button type="submit">Отправить сообщение</button>
     </form>
-    {% if select_form.fields.project.queryset %}
-      <h2>Выбрать в проект</h2>
-      <p class="hint">На одну роль можно выбрать одного специалиста.</p>
-      <form class="stack" method="post" action="{% url 'add_to_project' specialist.pk %}">
+  </dialog>
+
+  {% if add_form %}
+    <dialog class="popup" id="project-dialog">
+      <form method="post" action="{% url 'add_to_project' specialist.pk %}">
         {% csrf_token %}
-        {% for field in select_form %}
-          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-          {{ field }}
-        {% endfor %}
-        <button type="submit">Выбрать</button>
+        <button class="popup-close" type="button" onclick="this.closest('dialog').close()" aria-label="Закрыть">
+          <img src="{% static 'img/icons/close.svg' %}" alt="" width="22" height="22">
+        </button>
+        <h2>Добавить в проект</h2>
+        <p class="hint">Выберите проект или заполните поля ниже, чтобы создать новый. Роль: {{ specialist.category }}.</p>
+        <label for="{{ add_form.project.id_for_label }}">Проект</label>
+        {{ add_form.project }}
+        <label for="{{ add_form.title.id_for_label }}">Название</label>
+        {{ add_form.title }}
+        <label for="{{ add_form.event_type.id_for_label }}">Мероприятие</label>
+        {{ add_form.event_type }}
+        <label for="{{ add_form.event_date.id_for_label }}">Дата</label>
+        {{ add_form.event_date }}
+        <button type="submit">Добавить</button>
       </form>
-    {% else %}
-      <p class="hint"><a href="{% url 'projects' %}">Создайте проект</a>, чтобы выбрать этого специалиста.</p>
-    {% endif %}
-  {% elif not user.is_authenticated %}
-    <p><a href="{% url 'login' %}">Войдите</a>, чтобы сохранить специалиста или выбрать его в проект.</p>
+    </dialog>
   {% endif %}
+
+  {% if main_photos %}
+    <dialog class="spec-lightbox" id="spec-lightbox">
+      <div class="spec-lightbox-body">
+        <button class="popup-close" type="button" onclick="this.closest('dialog').close()" aria-label="Закрыть">
+          <img src="{% static 'img/icons/close.svg' %}" alt="" width="22" height="22">
+        </button>
+        <div class="spec-lightbox-grid">
+          {% for photo in main_photos %}
+            <img src="{{ photo.image.url }}" alt="">
+          {% endfor %}
+        </div>
+      </div>
+    </dialog>
+  {% endif %}
+
+  <dialog class="popup review-dialog" id="review-denied">
+    <div class="review-sheet">
+      <button class="popup-close" type="button" onclick="this.closest('dialog').close()" aria-label="Закрыть">
+        <img src="{% static 'img/icons/close.svg' %}" alt="" width="22" height="22">
+      </button>
+      <p>К сожалению, вы не можете написать отзыв, так как не сотрудничали с данным специалистом.</p>
+    </div>
+  </dialog>
+
+  <dialog class="popup review-dialog" id="review-done">
+    <div class="review-sheet">
+      <button class="popup-close" type="button" onclick="this.closest('dialog').close()" aria-label="Закрыть">
+        <img src="{% static 'img/icons/close.svg' %}" alt="" width="22" height="22">
+      </button>
+      <p>Вы уже оставили отзыв этому специалисту.</p>
+    </div>
+  </dialog>
+
+  {% if review_state == "form" %}
+    <dialog class="popup review-dialog review-form" id="review-form"{% if request.GET.review == "form" %} open{% endif %}>
+      <form class="review-sheet" method="post" action="{% url 'add_review' specialist.pk %}" enctype="multipart/form-data">
+        {% csrf_token %}
+        <button class="popup-close" type="button" onclick="this.closest('dialog').close()" aria-label="Закрыть">
+          <img src="{% static 'img/icons/close.svg' %}" alt="" width="22" height="22">
+        </button>
+        <h2>Оставьте свой отзыв</h2>
+        <p class="review-field-label">Оцените исполнителя</p>
+        <div class="rate-stars">
+          {% for value in "54321" %}
+            <input id="rate-{{ value }}" type="radio" name="rating" value="{{ value }}" aria-label="Оценка {{ value }}" required>
+            <label for="rate-{{ value }}">
+              <img class="rate-empty" src="{% static 'img/icons/star.svg' %}" alt="">
+              <img class="rate-filled" src="{% static 'img/icons/star-filled.svg' %}" alt="">
+            </label>
+          {% endfor %}
+        </div>
+        <label class="review-field-label" for="review-text">Комментарий</label>
+        <textarea class="input" id="review-text" name="text" rows="4" required placeholder="Введите комментарий"></textarea>
+        <input id="review-photos" type="file" name="photos" accept="image/*" multiple hidden>
+        <button class="review-photos-add" type="button">+ Фотографии</button>
+        <p class="review-photo-names" id="review-photo-names"></p>
+        <p class="errors" id="review-error" hidden></p>
+        <button type="submit">Отправить отзыв</button>
+      </form>
+    </dialog>
+  {% endif %}
+
+  <dialog class="popup review-dialog review-thanks" id="review-thanks"{% if request.GET.review == "sent" %} open{% endif %}>
+    <div class="review-sheet">
+      <button class="popup-close" type="button" onclick="this.closest('dialog').close()" aria-label="Закрыть">
+        <img src="{% static 'img/icons/close.svg' %}" alt="" width="22" height="22">
+      </button>
+      <h2>Спасибо за ваш отзыв!</h2>
+      <p>Мы ценим ваше мнение и рады, что вы поделились своими впечатлениями. Ваши комментарии помогут нам улучшить наши услуги.</p>
+      <a class="login-pill" href="{% url 'home' %}">На главную</a>
+    </div>
+  </dialog>
+
+  <script>
+    document.querySelectorAll("dialog.popup, dialog.spec-lightbox").forEach((dialog) => {
+      dialog.addEventListener("click", (event) => {
+        if (event.target === dialog) dialog.close();
+      });
+    });
+
+    document.querySelectorAll(".offer").forEach((card) => {
+      const button = card.querySelector(".offer-more");
+      if (!button) return;
+      button.addEventListener("click", () => {
+        const open = card.classList.toggle("is-open");
+        button.textContent = open ? "Скрыть" : "Узнать больше";
+        button.setAttribute("aria-expanded", open ? "true" : "false");
+      });
+    });
+
+    document.querySelectorAll("[data-offer-slider]").forEach((slider) => {
+      const track = slider.querySelector(".offer-track");
+      const viewport = slider.querySelector(".offer-viewport");
+      const dots = [...slider.querySelectorAll(".offer-dot")];
+      const go = (page) => {
+        track.style.transform = `translateX(-${page * (viewport.clientWidth + 24)}px)`;
+        dots.forEach((dot, index) => {
+          const active = index === page;
+          dot.classList.toggle("is-active", active);
+          if (active) dot.setAttribute("aria-current", "true");
+          else dot.removeAttribute("aria-current");
+        });
+      };
+      dots.forEach((dot) => {
+        dot.addEventListener("click", () => go(Number(dot.dataset.page)));
+      });
+    });
+
+    document.querySelectorAll("[data-open-dialog]").forEach((button) => {
+      button.addEventListener("click", () => {
+        document.getElementById(button.dataset.openDialog)?.showModal();
+      });
+    });
+
+    document.querySelectorAll("[data-review-slider]").forEach((slider) => bindReviewSlider(slider));
+
+    function bindReviewSlider(slider) {
+      if (slider.dataset.bound === "1") return;
+      slider.dataset.bound = "1";
+      const track = slider.querySelector(".review-track");
+      const viewport = slider.querySelector(".review-viewport");
+      const go = (page) => {
+        const dots = [...slider.querySelectorAll(".offer-dot")];
+        track.style.transform = `translateX(-${page * (viewport.clientWidth + 24)}px)`;
+        dots.forEach((dot, index) => {
+          const active = index === page;
+          dot.classList.toggle("is-active", active);
+          if (active) dot.setAttribute("aria-current", "true");
+          else dot.removeAttribute("aria-current");
+        });
+      };
+      slider.addEventListener("click", (event) => {
+        const dot = event.target.closest(".offer-dot");
+        if (!dot || !slider.contains(dot)) return;
+        go(Number(dot.dataset.page));
+      });
+      slider._go = go;
+    }
+
+    function syncReviewDots(slider, pages) {
+      let dots = slider.querySelector(".review-dots");
+      if (!pages || pages < 2) {
+        dots?.remove();
+        return;
+      }
+      if (!dots) {
+        dots = document.createElement("div");
+        dots.className = "review-dots";
+        slider.append(dots);
+      }
+      dots.replaceChildren();
+      for (let page = 0; page < pages; page += 1) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "offer-dot" + (page === 0 ? " is-active" : "");
+        button.dataset.page = String(page);
+        button.setAttribute("aria-label", `Страница ${page + 1}`);
+        if (page === 0) button.setAttribute("aria-current", "true");
+        dots.append(button);
+      }
+    }
+
+    const reviewForm = document.querySelector("#review-form form");
+    if (reviewForm) {
+      reviewForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const error = document.getElementById("review-error");
+        const button = reviewForm.querySelector("button[type=submit]");
+        button.disabled = true;
+        error.hidden = true;
+        try {
+          const response = await fetch(reviewForm.action, {
+            method: "POST",
+            body: new FormData(reviewForm),
+            headers: { "X-Requested-With": "fetch", "Accept": "application/json" },
+          });
+          const data = await response.json();
+          if (!data.ok) {
+            error.textContent = data.error || "Не получилось отправить отзыв";
+            error.hidden = false;
+            return;
+          }
+          const section = document.getElementById("reviews");
+          if (!section.querySelector(".review-sort")) {
+            const sort = document.getElementById("review-sort-template");
+            section.querySelector(".spec-reviews-head").append(sort.content.cloneNode(true));
+          }
+          const summary = section.querySelector(".rating-summary");
+          if (summary) summary.outerHTML = data.summary_html;
+          else section.querySelector(".review-add").insertAdjacentHTML("beforebegin", data.summary_html);
+          let slider = section.querySelector("[data-review-slider]");
+          if (!slider) {
+            section.querySelector(".empty-note")?.remove();
+            section.querySelector(".review-add").insertAdjacentHTML(
+              "afterend",
+              '<div class="review-slider" data-review-slider><div class="review-viewport"><div class="review-track"></div></div></div>'
+            );
+            slider = section.querySelector("[data-review-slider]");
+            bindReviewSlider(slider);
+          }
+          slider.querySelector(".review-track").innerHTML = data.cards_html;
+          syncReviewDots(slider, data.summary.pages);
+          slider._go(0);
+          reviewForm.reset();
+          const names = document.getElementById("review-photo-names");
+          if (names) names.textContent = "";
+          document.getElementById("review-form").close();
+          document.getElementById("review-thanks").showModal();
+          const add = document.querySelector(".review-add");
+          if (add) add.dataset.openDialog = data.state === "form" ? "review-form" : "review-done";
+        } catch (err) {
+          error.textContent = "Не получилось отправить отзыв";
+          error.hidden = false;
+        } finally {
+          button.disabled = false;
+        }
+      });
+    }
+
+    const photoInput = document.getElementById("review-photos");
+    const photoAdd = document.querySelector(".review-photos-add");
+    const photoNames = document.getElementById("review-photo-names");
+    if (photoInput && photoAdd) {
+      photoAdd.addEventListener("click", () => photoInput.click());
+      photoInput.addEventListener("change", () => {
+        photoNames.textContent = [...photoInput.files].map((file) => file.name).join(", ");
+      });
+    }
+
+    const thanks = document.getElementById("review-thanks");
+    if (thanks?.open) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("review");
+      history.replaceState({}, "", url);
+    }
+  </script>
 {% endblock %}

@@ -6,6 +6,7 @@ from .models import (
     Message,
     Project,
     Review,
+    ReviewPhoto,
     RoleCandidate,
     SavedTeam,
     SavedTeamMember,
@@ -54,8 +55,14 @@ class MessageAdmin(admin.ModelAdmin):
     list_filter = ("kind",)
 
 
+class ReviewPhotoInline(admin.TabularInline):
+    model = ReviewPhoto
+    extra = 0
+
+
 @admin.register(Review)
 class ReviewAdmin(admin.ModelAdmin):
     list_display = ("author", "specialist", "project", "rating", "is_hidden", "created_at")
     list_filter = ("is_hidden", "rating")
     search_fields = ("text", "reply")
+    inlines = [ReviewPhotoInline]

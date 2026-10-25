@@ -3,8 +3,10 @@
 {% block title %}{{ project.title }} — Fiesta{% endblock %}
 
 {% block content %}
-  <h1>{{ project.title }}</h1>
+  <div class="cabinet">
   {% include "cabinet_nav.html" %}
+  <div class="cabinet-body">
+  <h1>{{ project.title }}</h1>
   <p>{{ project.event_type }}. {{ project.event_date }}. {{ project.get_status_display }}.</p>
   <p>{{ project.description }}</p>
   <h2>Команда</h2>
@@ -18,7 +20,7 @@
           <button type="submit" name="candidate" value="{{ member.pk }}">Убрать</button>
         </form>
       {% elif member.specialist.pk not in reviewed %}
-        <form class="stack" method="post">
+        <form class="stack" method="post" data-async="review">
           {% csrf_token %}
           <input type="hidden" name="action" value="review">
           <input type="hidden" name="specialist" value="{{ member.specialist.pk }}">
@@ -41,4 +43,6 @@
       <button type="submit" name="action" value="complete">Завершить проект</button>
     </form>
   {% endif %}
+  </div>
+  </div>
 {% endblock %}

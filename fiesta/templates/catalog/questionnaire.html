@@ -3,8 +3,10 @@
 {% block title %}Анкета — Fiesta{% endblock %}
 
 {% block content %}
-  <h1>Анкета</h1>
+  <div class="cabinet">
   {% include "cabinet_nav.html" %}
+  <div class="cabinet-body">
+  <h1>Анкета</h1>
   <form class="stack" method="post" enctype="multipart/form-data">
     {% csrf_token %}
     {% for field in form %}
@@ -23,15 +25,17 @@
     <input class="input" type="file" name="images" accept=".jpg,.jpeg,.png" multiple>
     <button type="submit">Сохранить анкету</button>
   </form>
-  <div class="cards">
+  <div class="anketa-photos">
     {% for photo in photos %}
-      <div class="card">
-        <img class="thumb" src="{{ photo.image.url }}" alt="">
+      <article class="anketa-photo">
+        <img src="{{ photo.image.url }}" alt="">
         <form method="post">
           {% csrf_token %}
-          <button type="submit" name="delete_photo" value="{{ photo.pk }}">Удалить</button>
+          <button class="photo-delete" type="submit" name="delete_photo" value="{{ photo.pk }}">Удалить</button>
         </form>
-      </div>
+      </article>
     {% endfor %}
+  </div>
+  </div>
   </div>
 {% endblock %}

@@ -4,10 +4,45 @@ from decimal import Decimal
 from django.core.management.base import BaseCommand
 
 from accounts.models import Account, SpecialistProfile, UserProfile
-from catalog.models import Category, CategoryPriceField, EventType, SpecialistPrice
+from catalog.models import (
+    Category,
+    CategoryPriceField,
+    DetailOption,
+    EventType,
+    SpecialistDetail,
+    SpecialistEventType,
+    SpecialistPrice,
+)
 from projects.models import Project, Review, RoleCandidate
 
 PASSWORD = "Test-fiesta-2026"
+
+MARKS = {
+    "Фотограф": {
+        "details": [("Стили фото", "Классика"), ("Результат", "Цифровые файлы")],
+        "events": ["Свадьба", "День рождения"],
+    },
+    "Видеограф": {
+        "details": [("Стили видео", "Репортаж"), ("Результат", "Короткий ролик")],
+        "events": ["Свадьба"],
+    },
+    "Ведущий": {
+        "details": [("Формат", "Ведущий с программой"), ("Язык", "Русский")],
+        "events": ["Свадьба", "Корпоратив"],
+    },
+    "Кейтеринг": {
+        "details": [("Формат", "Банкет")],
+        "events": ["Свадьба", "Фуршет"],
+    },
+    "Площадка": {
+        "details": [("Тип площадки", "Усадьба")],
+        "events": ["Свадьба"],
+    },
+    "Декоратор": {
+        "details": [("Стиль", "Винтаж")],
+        "events": ["Свадьба", "День рождения"],
+    },
+}
 
 SPECIALISTS = [
     ("test.photo@fiesta.local", "Фотограф", {"event": "500", "hour": "50"}),
@@ -67,6 +102,7 @@ class Command(BaseCommand):
                     defaults={"amount": Decimal(amount)},
                 )
             profiles[category_name] = profile
+            self._mark(profile, category)
             self.stdout.write(f"{email} — Тест {category_name}")
 
         customer = self._customer()
@@ -75,6 +111,23 @@ class Command(BaseCommand):
         if customer and photographer and host:
             self._sample_project(customer, photographer, host)
         self.stdout.write(f"Пароль тестовых аккаунтов: {PASSWORD}")
+
+    def _mark(self, profile, category):
+        marks = MARKS.get(category.name)
+        if marks is None:
+            return
+        for group_title, title in marks["details"]:
+            option = DetailOption.objects.filter(
+                category=category, group_title=group_title, title=title
+            ).first()
+            if option is not None:
+                SpecialistDetail.objects.get_or_create(specialist=profile, option=option)
+        for name in marks["events"]:
+            event_type = EventType.objects.filter(name=name).first()
+            if event_type is not None:
+                SpecialistEventType.objects.get_or_create(
+                    specialist=profile, event_type=event_type
+                )
 
     def _customer(self):
         email = "test.customer@fiesta.local"

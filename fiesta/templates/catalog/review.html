@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ review.author.first_name }} — {{ specialist.first_name }} {{ specialist.last_name }} — Fiesta{% endblock %}
+
+{% block content %}
+  <p class="crumbs specialist-crumbs">
+    <a href="{% url 'home' %}">Главная</a> &gt;
+    <a href="{% url 'catalog' %}">Каталог</a> &gt;
+    <a href="{% url 'category_catalog' specialist.category.pk %}">{{ category_label }}</a> &gt;
+    <a href="{{ specialist.get_absolute_url }}">{{ specialist.first_name }} {{ specialist.last_name }}</a> &gt;
+    Отзыв
+  </p>
+  <div class="review-page">
+    <div class="review-page-name">
+      <h1>{{ review.author.first_name }}</h1>
+      <time datetime="{{ review.created_at|date:'Y-m-d' }}">{{ review.created_at|date:"d.m.Y" }}</time>
+    </div>
+    <div class="rating-stars">
+      {% for star in review.filled_stars %}
+        <img src="{% static 'img/icons/star-filled.svg' %}" alt="">
+      {% endfor %}
+      {% for star in review.empty_stars %}
+        <img src="{% static 'img/icons/star.svg' %}" alt="">
+      {% endfor %}
+    </div>
+    <p class="review-page-text">{{ review.text|linebreaksbr }}</p>
+    {% if review.reply %}
+      <p class="review-reply"><strong>Ответ специалиста.</strong> {{ review.reply }}</p>
+    {% endif %}
+    {% if review.photos.all %}
+      <div class="review-gallery">
+        {% for photo in review.photos.all %}
+          <img src="{{ photo.image.url }}" alt="">
+        {% endfor %}
+      </div>
+    {% endif %}
+    <a class="login-pill review-back" href="{{ specialist.get_absolute_url }}#reviews">Вернуться к отзывам</a>
+  </div>
+{% endblock %}

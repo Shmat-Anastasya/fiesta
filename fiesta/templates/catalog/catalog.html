@@ -1,38 +1,21 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Каталог — Fiesta{% endblock %}
 
 {% block content %}
+  <p class="crumbs"><a href="{% url 'home' %}">Главная</a> · Каталог</p>
   <h1>Каталог</h1>
-  <form class="stack" method="get">
-    {% for field in filter_form %}
-      <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-      {{ field }}
-    {% endfor %}
-    <button type="submit">Показать</button>
-  </form>
-  <div class="cards">
-    {% for specialist in specialists %}
-      <article class="card">
-        {% if specialist.main_photo_list %}
-          <img class="thumb" src="{{ specialist.main_photo_list.0.image.url }}" alt="">
+  <div class="bento">
+    {% for tile in tiles %}
+      <a class="tile tile-{{ tile.css }}" href="{% url 'category_catalog' tile.category.pk %}">
+        {% if tile.image %}
+          <img src="{% static 'img/catalog/' %}{{ tile.image }}" alt="">
         {% endif %}
-        <h2><a href="{{ specialist.get_absolute_url }}">{{ specialist.first_name }} {{ specialist.last_name }}</a></h2>
-        <p>{{ specialist.category }}</p>
-        <p>
-          {% if specialist.service_price %}от {{ specialist.service_price }} бел. руб. за услугу{% endif %}
-          {% if specialist.hour_price %}от {{ specialist.hour_price }} бел. руб. за час{% endif %}
-        </p>
-        <p>
-          {% if specialist.rating_value %}
-            Рейтинг: {{ specialist.rating_value|floatformat:1 }}
-          {% else %}
-            Рейтинга пока нет
-          {% endif %}
-        </p>
-      </article>
+        <span class="tile-label place-{{ tile.place }}">{{ tile.label }}</span>
+      </a>
     {% empty %}
-      <p>Специалистов не найдено.</p>
+      <p>Категорий пока нет.</p>
     {% endfor %}
   </div>
 {% endblock %}

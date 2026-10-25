@@ -3,8 +3,10 @@
 {% block title %}Отзывы — Fiesta{% endblock %}
 
 {% block content %}
-  <h1>Отзывы</h1>
+  <div class="cabinet">
   {% include "cabinet_nav.html" %}
+  <div class="cabinet-body">
+  <h1>Отзывы</h1>
   {% for review in reviews %}
     <article class="card">
       <p>{{ review.project.title }}. Оценка: {{ review.rating }}</p>
@@ -24,4 +26,6 @@
   {% empty %}
     <p>Отзывов нет.</p>
   {% endfor %}
+  </div>
+  </div>
 {% endblock %}

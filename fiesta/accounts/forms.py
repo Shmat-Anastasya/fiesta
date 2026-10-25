@@ -5,6 +5,7 @@ from django.forms import (
     CharField,
     DateInput,
     EmailField,
+    FileInput,
     Form,
     ModelChoiceField,
     ModelForm,
@@ -17,7 +18,7 @@ from .models import Account, SpecialistProfile, UserProfile
 
 
 class LoginForm(Form):
-    email = EmailField(label="Почта")
+    email = EmailField(label="Электронная почта")
     password = CharField(label="Пароль", widget=PasswordInput)
 
     def __init__(self, request=None, *args, **kwargs):
@@ -26,6 +27,8 @@ class LoginForm(Form):
         super().__init__(*args, **kwargs)
         for field in self.fields.values():
             field.widget.attrs["class"] = "input"
+        self.fields["email"].widget.attrs["placeholder"] = "Электронная почта"
+        self.fields["password"].widget.attrs["placeholder"] = "Введите пароль"
 
     def clean(self):
         cleaned = super().clean()
@@ -40,18 +43,19 @@ class LoginForm(Form):
 
 
 class CustomerRegistrationForm(Form):
-    email = EmailField(label="Почта")
-    password1 = CharField(label="Пароль", widget=PasswordInput)
-    password2 = CharField(label="Пароль ещё раз", widget=PasswordInput)
     first_name = CharField(label="Имя", max_length=100)
-    last_name = CharField(label="Фамилия", max_length=100)
-    patronymic = CharField(label="Отчество", max_length=100, required=False)
-    phone = CharField(label="Телефон", max_length=30, required=False)
+    email = EmailField(label="Электронная почта")
+    password1 = CharField(label="Введите пароль", widget=PasswordInput)
+    password2 = CharField(label="Подтвердить пароль", widget=PasswordInput)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for field in self.fields.values():
             field.widget.attrs["class"] = "input"
+        self.fields["first_name"].widget.attrs["placeholder"] = "Введите имя"
+        self.fields["email"].widget.attrs["placeholder"] = "Электронная почта"
+        self.fields["password1"].widget.attrs["placeholder"] = "Введите пароль"
+        self.fields["password2"].widget.attrs["placeholder"] = "Подтвердите пароль"
 
     def clean_email(self):
         email = Account.objects.normalize_email(self.cleaned_data["email"])
@@ -81,9 +85,9 @@ class CustomerRegistrationForm(Form):
         UserProfile.objects.create(
             account=account,
             first_name=self.cleaned_data["first_name"],
-            last_name=self.cleaned_data["last_name"],
-            patronymic=self.cleaned_data["patronymic"],
-            phone=self.cleaned_data["phone"],
+            last_name="",
+            patronymic="",
+            phone="",
             city="Минск",
         )
         return account
@@ -97,6 +101,7 @@ class SpecialistRegistrationForm(CustomerRegistrationForm):
         self.fields["category"].queryset = Category.objects.filter(is_hidden=False)
         self.fields["category"].empty_label = "Выберите категорию"
         self.fields["category"].widget.attrs["class"] = "input"
+        self.order_fields(["first_name", "category", "email", "password1", "password2"])
 
     def save(self):
         account = Account.objects.create_user(
@@ -107,9 +112,9 @@ class SpecialistRegistrationForm(CustomerRegistrationForm):
         SpecialistProfile.objects.create(
             account=account,
             first_name=self.cleaned_data["first_name"],
-            last_name=self.cleaned_data["last_name"],
-            patronymic=self.cleaned_data["patronymic"],
-            phone=self.cleaned_data["phone"],
+            last_name="",
+            patronymic="",
+            phone="",
             city="Минск",
             category=self.cleaned_data["category"],
         )
@@ -117,6 +122,8 @@ class SpecialistRegistrationForm(CustomerRegistrationForm):
 
 
 class ProfileForm(ModelForm):
+    email = EmailField(label="Электронная почта")
+
     class Meta:
         fields = [
             "first_name",
@@ -132,6 +139,8 @@ class ProfileForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields["email"].initial = self.instance.account.email
+        self.fields["phone"].label = "Номер телефона"
         for field in self.fields.values():
             field.widget.attrs["class"] = "input"
         self.fields["birth_date"].widget = DateInput(
@@ -139,6 +148,31 @@ class ProfileForm(ModelForm):
             attrs={"type": "date", "class": "input"},
         )
         self.fields["birth_date"].input_formats = ["%Y-%m-%d"]
+        self.fields["photo"].widget = FileInput(
+            attrs={
+                "class": "avatar-file",
+                "accept": ".jpg,.jpeg,.png,image/jpeg,image/png",
+            }
+        )
+
+    def clean_email(self):
+        email = Account.objects.normalize_email(self.cleaned_data["email"])
+        taken = Account.objects.filter(email__iexact=email).exclude(
+            pk=self.instance.account_id
+        )
+        if taken.exists():
+            raise ValidationError("Такая почта уже зарегистрирована")
+        return email
+
+    def save(self, commit=True):
+        profile = super().save(commit=commit)
+        if commit:
+            account = profile.account
+            email = self.cleaned_data["email"]
+            if account.email != email:
+                account.email = email
+                account.save(update_fields=["email"])
+        return profile
 
 
 class UserProfileForm(ProfileForm):

@@ -3,8 +3,10 @@
 {% block title %}Проекты — Fiesta{% endblock %}
 
 {% block content %}
-  <h1>Проекты</h1>
+  <div class="cabinet">
   {% include "cabinet_nav.html" %}
+  <div class="cabinet-body">
+  <h1>Проекты</h1>
   <nav class="tabs">
     <a href="{% url 'projects' %}?tab=all" {% if tab == "all" %}class="active"{% endif %}>Все</a>
     <a href="{% url 'projects' %}?tab=in_progress" {% if tab == "in_progress" %}class="active"{% endif %}>В процессе</a>
@@ -32,4 +34,6 @@
     {% endfor %}
     <button type="submit">Создать</button>
   </form>
+  </div>
+  </div>
 {% endblock %}

@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% load static catalog_tags %}
+
+{% block title %}{{ category_title }} — Fiesta{% endblock %}
+
+{% block content %}
+  <p class="crumbs category-crumbs"><a href="{% url 'home' %}">Главная</a> › <a href="{% url 'catalog' %}">Каталог</a> › {{ category_title }}</p>
+  <div class="category-board">
+    <form method="get" class="category-tools" onchange="this.requestSubmit()">
+    <div class="category-top">
+        <h1>{{ category_title }}</h1>
+        <p class="category-count">
+          <svg class="count-mark" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+            <circle cx="8" cy="8" r="6.25" fill="none" stroke="currentColor" stroke-width="1.5"></circle>
+            <path d="M8 7.1v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
+            <circle cx="8" cy="4.7" r="0.8" fill="currentColor"></circle>
+          </svg>
+          {{ specialists_label }}
+        </p>
+      </div>
+      <div class="sort-row">
+        <span>Сортировать:</span>
+        {{ filter_form.sort }}
+      </div>
+      <aside class="filters">
+        <h2>Дата мероприятия</h2>
+        <div class="date-field{% if filter_form.event_date.value %} has-value{% endif %}">
+          {{ filter_form.event_date }}
+          <span>Выберите дату</span>
+        </div>
+
+        <h2>Мероприятие</h2>
+        <select name="event">
+          <option value="">Выберите тип</option>
+          {% for item in event_choices %}
+            <option value="{{ item.pk }}" {% if item.pk == selected_event %}selected{% endif %}>{{ item.name }}</option>
+          {% endfor %}
+        </select>
+
+        <h2>Стоимость</h2>
+        {{ filter_form.price_mode }}
+        <label for="{{ filter_form.price_max.id_for_label }}">{{ filter_form.price_max.label }}</label>
+        {{ filter_form.price_max }}
+        {% for error in filter_form.price_max.errors %}
+          <p class="errors">{{ error }}</p>
+        {% endfor %}
+
+        {% for group in detail_groups %}
+          <h2>{{ group.title }}</h2>
+          <ul class="check-list">
+            {% for option in group.options %}
+              <li>
+                <label>
+                  <input type="checkbox" name="detail" value="{{ option.id }}" {% if option.checked %}checked{% endif %}>
+                  {{ option.title }}
+                </label>
+              </li>
+            {% endfor %}
+          </ul>
+        {% endfor %}
+
+        <a class="reset-filters" href="{% url 'category_catalog' category.pk %}">Сбросить все фильтры</a>
+      </aside>
+    </form>
+    <div class="people">
+        {% for specialist in specialists %}
+          {% include "catalog/_person_card.html" %}
+        {% empty %}
+          <p class="empty-note">Тут пока нет специалистов</p>
+        {% endfor %}
+    </div>
+    {% if has_more %}
+      <a class="load-more" href="?{{ more_query }}">Загрузить еще</a>
+    {% endif %}
+  </div>
+{% endblock %}

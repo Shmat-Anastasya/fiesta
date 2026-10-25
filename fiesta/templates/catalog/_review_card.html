@@ -1,0 +1,26 @@
+{% load static %}
+<article class="review-card{% if not review.card_photos %} is-plain{% endif %}">
+  {% if review.card_photos %}
+    <div class="review-thumbs">
+      {% for photo in review.card_photos %}
+        <img src="{{ photo.image.url }}" alt="">
+      {% endfor %}
+    </div>
+  {% endif %}
+  <div class="review-body">
+    <div class="review-person">
+      <p class="review-name">{{ review.author.first_name }}</p>
+      <time datetime="{{ review.created_at|date:'Y-m-d' }}">{{ review.created_at|date:"d.m.Y" }}</time>
+    </div>
+    <div class="rating-stars review-card-stars">
+      {% for star in review.filled_stars %}
+        <img src="{% static 'img/icons/star-filled.svg' %}" alt="">
+      {% endfor %}
+      {% for star in review.empty_stars %}
+        <img src="{% static 'img/icons/star.svg' %}" alt="">
+      {% endfor %}
+    </div>
+    <p class="review-card-text">{{ review.text }}</p>
+    <a class="review-open" href="{% url 'review_detail' specialist.pk review.pk %}">Открыть весь отзыв</a>
+  </div>
+</article>
